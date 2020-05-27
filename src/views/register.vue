@@ -7,7 +7,22 @@
       <section>
         <!-- 头部页面标识  -->
         <div class="titleImg">
-          <img src="../assets/img/时钟.png" alt="" />
+          <!-- 1- > 等待中 -->
+          <img
+            src="../assets/img/计时沙漏.png"
+            alt=""
+            v-show="
+              $store.state.mediationRoomInfo.recentMediationList[0].status === 1
+            "
+          />
+          <!--   0-> 进行中 -->
+          <img
+            src="../assets/img/时钟.png"
+            alt=""
+            v-show="
+              $store.state.mediationRoomInfo.recentMediationList[0].status === 0
+            "
+          />
         </div>
         <h1>{{ mediationName }}</h1>
         <!-- 人脸识别 -->
@@ -80,6 +95,8 @@ export default {
     // this.Upimg();
   },
   mounted() {
+    // 清楚定时器
+    clearInterval(this.$store.state.routerInterval);
     // 开启摄像头
     // this.openNavgate();
     // this.Upimg();
@@ -90,6 +107,9 @@ export default {
       this.roomSignOut();
       // this.signSuccess = true;
     }
+    setTimeout(() => {
+      this.$router.push("/");
+    }, 30000);
   },
   methods: {
     // 开启摄像头
@@ -243,11 +263,13 @@ export default {
     // 签退
     roomSignOut() {
       let _this = this;
+      let recentMediationList = [];
+      _this.$store.state.mediationRoomInfo.recentMediationList.forEach(item => {
+        recentMediationList.push(item.id);
+      });
       _this.$axios
         .post("/client/mediation/signOut", {
-          mediationIds: [
-            this.$store.state.mediationRoomInfo.recentMediationList[0].id
-          ],
+          mediationIds: recentMediationList,
           signOutName: "123"
         })
         .then(res => {
@@ -271,6 +293,7 @@ export default {
   },
   destroyed() {
     clearInterval(this.GetBase);
+    // clearInterval(this.$store.state.routerInterval);
     // console.log("destroyed", this.GetBase);
   }
 };

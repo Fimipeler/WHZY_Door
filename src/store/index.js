@@ -96,7 +96,8 @@ export default new Vuex.Store({
       //   name: "张三丰",
       //   time: "18:12"
       // }
-    ]
+    ],
+    routerInterval: ""
   },
   mutations: {
     // getData(state, res) {
@@ -117,15 +118,15 @@ export default new Vuex.Store({
       state.mediationRoomInfo = res;
       state.textList = res.roomName.split("");
       // console.log(state.textList);
-      if (res.recentMediationList.length > 0) {
-        if (res.recentMediationList[0].status === 2) {
-          router.push("/free");
-        } else {
-          router.push("/index");
-        }
-      } else {
-        router.push("/free");
-      }
+      // if (res.recentMediationList.length > 0) {
+      //   if (res.recentMediationList[0].status === 2) {
+      //     router.push("/free");
+      //   } else {
+      //     router.push("/index");
+      //   }
+      // } else {
+      //   router.push("/free");
+      // }
     }
   },
   actions: {

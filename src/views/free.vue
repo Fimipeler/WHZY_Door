@@ -80,19 +80,12 @@ export default {
         day: ""
       },
       showDot: true,
-      routerInterval: "",
-      // 时间定时器
-      timeInterval: "",
       // 调解室名称
       textList: this.$store.state.textList,
       mediationRoomInfo: this.$store.state.mediationRoomInfo
     };
   },
-  created() {
-    this.routerInterval = setInterval(() => {
-      this.$store.dispatch("getMediation");
-    }, 5000);
-  },
+  created() {},
   filters: {
     filter(value) {
       if (value) {
@@ -186,7 +179,8 @@ export default {
   },
   destroyed() {
     clearInterval(this.timeInterval);
-    clearInterval(this.routerInterval);
+    // console.log("clearFree")
+    // clearInterval(this.$store.state.routerInterval);
   }
 };
 </script>

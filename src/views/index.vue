@@ -164,15 +164,10 @@ export default {
       // 页面状态标识
       // showImg: this.$store.state.roomStatus,
       // 调解室信息
-      mediationRoomInfo: this.$store.state.mediationRoomInfo,
-      routerInterval: ""
+      mediationRoomInfo: this.$store.state.mediationRoomInfo
     };
   },
-  created() {
-    this.routerInterval = setInterval(() => {
-      this.$store.dispatch("getMediation");
-    }, 5000);
-  },
+  created() {},
   mounted() {
     var url = window.location.search.substring(1); // 获取url中"?"符后的字串
     window.localStorage.setItem("num", url);
@@ -197,15 +192,8 @@ export default {
       this.$router.push("/register");
       // console.log(this.$store.state.signInState)
     }
-  },
-  computed: {
-    mediation() {
-      return this.$store.state.mediationRoomInfo;
-    }
-  },
-  destroyed() {
-    clearInterval(this.routerInterval);
   }
+
 };
 </script>
 

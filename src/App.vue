@@ -11,7 +11,32 @@ export default {
       this.$router.replace("/");
     }
   },
-  methods: {}
+  methods: {},
+  computed: {
+    mediation() {
+      return this.$store.state.mediationRoomInfo;
+    }
+  },
+  watch: {
+    mediation: {
+      handler(newValue, oldValue) {
+        if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+          console.log(222);
+          if (newValue.recentMediationList.length > 0) {
+            if (newValue.recentMediationList[0].status === 2) {
+              this.$router.push("/free");
+            } else {
+              this.$router.push("/index");
+            }
+          } else {
+            this.$router.push("/free");
+          }
+        }
+      },
+      // immediate: true,
+      deep: true
+    }
+  }
 };
 </script>
 <style lang="less">
