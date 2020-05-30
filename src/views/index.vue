@@ -193,7 +193,28 @@ export default {
       // console.log(this.$store.state.signInState)
     }
   }
-
+  // computed: {
+  //   mediation() {
+  //     return this.$store.state.mediationRoomInfo;
+  //   }
+  // },
+  // destroyed() {
+  //   // console.log("clearIndex")
+  //   // clearInterval(this.$store.state.routerInterval);
+  // },
+  // watch: {
+  //   mediation(value) {
+  //     if (value.recentMediationList.length > 0) {
+  //       if (value.recentMediationList[0].status === 2) {
+  //         this.$router.push("/free");
+  //       } else {
+  //         this.$router.push("/index");
+  //       }
+  //     } else {
+  //       this.$router.push("/free");
+  //     }
+  //   }
+  // }
 };
 </script>
 

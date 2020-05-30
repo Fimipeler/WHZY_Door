@@ -20,9 +20,12 @@ export default {
     this.$store.dispatch("getMediation");
     this.$store.state.routerInterval = setInterval(() => {
       this.$store.dispatch("getMediation");
+      this.$loading.hide();
     }, 5000);
   },
-  mounted() {},
+  mounted() {
+    this.$loading.show();
+  },
   methods: {
     again() {
       this.$store.dispatch("getMediation");
@@ -34,16 +37,21 @@ export default {
     }
   },
   watch: {
-    mediation(value) {
-      if (value.recentMediationList.length > 0) {
-        if (value.recentMediationList[0].status === 2) {
-          this.$router.push("/free");
+    mediation: {
+      handler(newValue, oldValue) {
+        console.log(222);
+        if (newValue.recentMediationList.length > 0) {
+          if (newValue.recentMediationList[0].status === 2) {
+            this.$router.push("/free");
+          } else {
+            this.$router.push("/index");
+          }
         } else {
-          this.$router.push("/index");
+          this.$router.push("/free");
         }
-      } else {
-        this.$router.push("/free");
-      }
+      },
+      // immediate: true,
+      deep: true
     }
   },
   destroyed() {

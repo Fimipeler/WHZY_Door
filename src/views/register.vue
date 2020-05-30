@@ -30,7 +30,13 @@
           <canvas id="canv" style="position: absolute; z-index: -1;"></canvas>
           <div class="baseBox">
             <div class="video-box">
-              <video id="video" autoplay></video>
+              <img :src="img_base" alt="" />
+              <!-- <video id="video" autoplay></video> -->
+              <!-- <video
+                id="video"
+                loop
+                preload
+              ></video> -->
             </div>
           </div>
         </div>
@@ -63,13 +69,16 @@
       </section>
     </main>
     <footer class="footer">©&nbsp;百智诚远</footer>
+    <OverTime></OverTime>
   </div>
 </template>
 <script>
 import Head from "@/views/common/head";
+import OverTime from "@/views/common/OverTime";
 export default {
   components: {
-    Head
+    Head,
+    OverTime
   },
   data() {
     return {
@@ -86,7 +95,8 @@ export default {
       // 识别状态
       signSuccess: false,
       // 签到或者签退
-      signInState: this.$store.state.signInState
+      signInState: this.$store.state.signInState,
+      img_base: require('../assets/img/数据加载失败.png')
     };
   },
   created() {
@@ -99,20 +109,86 @@ export default {
     clearInterval(this.$store.state.routerInterval);
     // 开启摄像头
     // this.openNavgate();
-    // this.Upimg();
+    this.$nextTick(() => {
+      // this.openNavgate();
+      // this.initVideo();
+      this.Upimg();
+    });
+
     if (this.signInState === 0) {
-      this.roomSignIn();
+      // this.roomSignIn();
       // this.signSuccess = true;
     } else {
-      this.roomSignOut();
+      // this.roomSignOut();
       // this.signSuccess = true;
     }
-    setTimeout(() => {
-      this.$router.push("/");
-    }, 30000);
   },
   methods: {
-    // 开启摄像头
+    initVideo() {
+      let that = this;
+      this.video = document.getElementById("video");
+      setTimeout(() => {
+        if (
+          navigator.mediaDevices.getUserMedia ||
+          navigator.getUserMedia ||
+          navigator.webkitGetUserMedia ||
+          navigator.mozGetUserMedia
+        ) {
+          // 调用用户媒体设备, 访问摄像头
+          that.getUserMedia(
+            {
+              video: {
+                width: {
+                  ideal: 720,
+                  max: 720
+                },
+                height: {
+                  ideal: 720,
+                  max: 720
+                },
+                facingMode: "user", // 前置摄像头
+                frameRate: {
+                  ideal: 30,
+                  min: 10
+                }
+              }
+            },
+            this.videoSuccess,
+            this.videoError
+          );
+        } else {
+          this.$toast.center("摄像头打开失败,请检查权限设置!");
+        }
+      }, 300);
+    },
+    getUserMedia(constraints, success, error) {
+      if (navigator.mediaDevices.getUserMedia) {
+        // 最新的标准API
+        navigator.mediaDevices
+          .getUserMedia(constraints)
+          .then(success)
+          .catch(error);
+      } else if (navigator.webkitGetUserMedia) {
+        // webkit核心浏览器
+        navigator.webkitGetUserMedia(constraints, success, error);
+      } else if (navigator.mozGetUserMedia) {
+        // firfox浏览器
+        navigator.mozGetUserMedia(constraints, success, error);
+      } else if (navigator.getUserMedia) {
+        // 旧版API
+        navigator.getUserMedia(constraints, success, error);
+      }
+    },
+    videoSuccess(stream) {
+      this.mediaStreamTrack = stream;
+      this.video.srcObject = stream;
+      this.video.play();
+    },
+    videoError(error) {
+      console.error(error);
+      // this.$toast.center("摄像头打开失败,请检查权限设置!");
+    },
+    // 开启PC端摄像头
     openNavgate() {
       var getUserMedia =
         navigator.getUserMedia ||
@@ -166,7 +242,11 @@ export default {
 
         ArrayBase64.push(newBase64);
         // console.log(ArrayBase64,'ArrayBase64')
-        let imgBase64 = ArrayBase64.pop();
+        // let imgBase64 = ArrayBase64.pop();
+
+        // 获取到安卓传过来的base64图片
+        let imgBase64 = this.img_base;
+
         // console.log(imgBase64, "imgBase64");
         if (!statue) {
           statue = true;
@@ -184,33 +264,17 @@ export default {
                   .then(res => {
                     if (res.data.status === true) {
                       console.log("登录成功!");
-                      console.log(res.data);
+                      // console.log(res.data);
                       // 停止人脸识别
                       clearInterval(_this.GetBase);
 
                       // 判断是签到 还是 签退
                       if (_this.signInState === 0) {
-                        // 将当前签到信息存入
-                        _this.user.img = imgBase64;
-                        _this.user.name = "谢伟";
-                        _this.user.time = _this.$refs.Head.time;
-                        // 将当前签到信息写入签到列表
-                        _this.$store.state.signList.push(_this.user);
-                        // 延时3秒跳转index界面
-                        setTimeout(() => {
-                          // 跳转主页
-                          _this.$router.push("/index");
-                        }, 3000);
-                        // 打印成功信息
-                        console.log(_this.$store.state.signList);
+                        // 签到
+                        _this.roomSignIn();
                       } else {
-                        // 初始化签到人员列表
-                        _this.$store.state.signList = [];
-                        // 延时3秒跳转index界面
-                        setTimeout(() => {
-                          // 跳转空闲页
-                          _this.$router.push("/free");
-                        }, 3000);
+                        // 签退
+                        _this.roomSignOut();
                       }
                     } else {
                       console.log(res.data.msg);
@@ -234,6 +298,7 @@ export default {
     },
     // 签到
     roomSignIn() {
+      console.log("签到");
       let _this = this;
       _this.$axios
         .post("/client/mediation/signIn", {
@@ -262,6 +327,7 @@ export default {
     },
     // 签退
     roomSignOut() {
+      console.log("签退");
       let _this = this;
       let recentMediationList = [];
       _this.$store.state.mediationRoomInfo.recentMediationList.forEach(item => {
@@ -289,6 +355,10 @@ export default {
           console.log(err);
           return false;
         });
+    },
+    getImg(img) {
+      this.img_base = img;
+      return "success";
     }
   },
   destroyed() {
@@ -349,6 +419,12 @@ export default {
         border-radius: 1.5vw;
         background-color: rgba(104, 160, 242, 0.2);
         #video {
+          width: 84vw;
+          height: 84vw;
+          margin-left: 50%;
+          transform: translateX(-50%);
+        }
+        img {
           width: 84vw;
           height: 84vw;
           margin-left: 50%;
