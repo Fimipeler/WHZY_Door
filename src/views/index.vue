@@ -155,6 +155,7 @@
 
 <script>
 import Head from "@/views/common/head";
+import { DKSXT } from "../../public/android.js";
 export default {
   components: {
     Head
@@ -190,6 +191,7 @@ export default {
         this.$store.state.signInState = 1;
       }
       this.$router.push("/register");
+      DKSXT();
       // console.log(this.$store.state.signInState)
     }
   }

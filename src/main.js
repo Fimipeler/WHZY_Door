@@ -37,24 +37,24 @@ Vue.use(VueAwesomeSwiper /* { default options with global component } */);
 /* 配置请求http */
 axios.defaults.baseURL = globalConfig.baseURL;
 axios.defaults.timeout = 5000;
-axios.interceptors.request.use(
-  function(config) {
-    // 这里的config包含每次请求的内容
-    // let token = window.sessionStorage.getItem("token");
-    // if (token) {
-    // 添加headers
-    config.headers["x-fydm"] = globalConfig.fydm;
-    // config.headers["x-token"] = `${token}`;
-    // config.headers["content-type"] =
-    //   "application/x-www-form-urlencoded;charset=UTF-8";
-    // } else {
-    // }
-    return config;
-  },
-  function(err) {
-    return Promise.reject(err);
-  }
-);
+// axios.interceptors.request.use(
+//   function(config) {
+//     // 这里的config包含每次请求的内容
+//     let token = window.sessionStorage.getItem("token");
+//     // if (token) {
+//     // 添加headers
+//     config.headers["x-fydm"] = globalConfig.fydm;
+//     config.headers["x-token"] = `${token}`;
+//     // config.headers["content-type"] =
+//     //   "application/x-www-form-urlencoded;charset=UTF-8";
+//     // } else {
+//     // }
+//     return config;
+//   },
+//   function(err) {
+//     return Promise.reject(err);
+//   }
+// );
 // axios.defaults.headers.post["Content-Type"] = "application/json";
 // axios.defaults.crossDomain = true;
 // axios.defaults.withCredentials = true;

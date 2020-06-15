@@ -21,7 +21,7 @@ export default {
     mediation: {
       handler(newValue, oldValue) {
         if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-          console.log(333);
+          console.log("Watch");
           if (newValue.recentMediationList.length > 0) {
             if (newValue.recentMediationList[0].status === 2) {
               this.$router.push("/free");

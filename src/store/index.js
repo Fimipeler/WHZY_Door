@@ -98,6 +98,7 @@ export default new Vuex.Store({
       // }
     ],
     routerInterval: ""
+    // img_base: globalConfig.img || require('../assets/img/数据加载失败.png')
   },
   mutations: {
     // getData(state, res) {

@@ -102,7 +102,7 @@ export default {
     this.setTimer();
   },
   destroyed() {
-    console.log("1111");
+    // console.log("1111");
     clearInterval(this.timers);
     clearInterval(this.downTimer);
   }

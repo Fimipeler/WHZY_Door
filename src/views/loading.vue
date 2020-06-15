@@ -18,17 +18,21 @@ export default {
   created() {
     clearInterval(this.$store.state.routerInterval);
     this.$store.dispatch("getMediation");
-    this.$store.state.routerInterval = setInterval(() => {
-      this.$store.dispatch("getMediation");
-      this.$loading.hide();
-    }, 5000);
   },
   mounted() {
-    this.$loading.show();
+    this.$store.state.routerInterval = setInterval(() => {
+      this.$store.dispatch("getMediation");
+    }, 5000);
   },
   methods: {
     again() {
-      this.$store.dispatch("getMediation");
+      let timeout = "";
+      clearTimeout(timeout);
+      this.$loading.show();
+      timeout = setTimeout(() => {
+        this.$loading.hide();
+        this.$store.dispatch("getMediation");
+      }, 3000);
     }
   },
   computed: {
@@ -39,7 +43,7 @@ export default {
   watch: {
     mediation: {
       handler(newValue, oldValue) {
-        console.log(222);
+        console.log("loading");
         if (newValue.recentMediationList.length > 0) {
           if (newValue.recentMediationList[0].status === 2) {
             this.$router.push("/free");

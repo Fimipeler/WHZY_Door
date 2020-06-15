@@ -30,29 +30,24 @@
           <canvas id="canv" style="position: absolute; z-index: -1;"></canvas>
           <div class="baseBox">
             <div class="video-box">
-              <img :src="img_base" alt="" />
-              <!-- <video id="video" autoplay></video> -->
-              <!-- <video
-                id="video"
-                loop
-                preload
-              ></video> -->
+              <!-- <img :src="img_base" alt="" /> -->
+              <video id="video" autoplay loop preload></video>
             </div>
           </div>
         </div>
         <div class="signState">
           <!-- 识别成功的勾勾 -->
-          <img
+          <!-- <img
             src="../assets/img/03成功icon.png"
             alt=""
             class="successIcon"
             v-show="signSuccess"
-          />
+          /> -->
           <!-- 身份识别中 -->
           <img
             src="../assets/img/身份识别中.png"
             alt=""
-            v-show="!signSuccess"
+            v-show="!signSuccess && !lsb"
           />
           <!-- 签到识别成功 -->
           <img
@@ -65,20 +60,25 @@
             alt=""
             v-show="signInState === 1 && signSuccess"
           />
+          <img src="../assets/img/身份识别失败.png" alt="" v-show="lsb" />
+        </div>
+        <div class="backWarp">
+          <div class="reBackIndex" @click="$router.push('/loading')"></div>
         </div>
       </section>
     </main>
     <footer class="footer">©&nbsp;百智诚远</footer>
-    <OverTime></OverTime>
+    <!-- <OverTime></OverTime> -->
+    <img id="showImg" :src="img_base" alt="" />
   </div>
 </template>
 <script>
 import Head from "@/views/common/head";
-import OverTime from "@/views/common/OverTime";
+// import OverTime from "@/views/common/OverTime";
+import { GBSXT, getAndroidImg } from "../../public/android.js";
 export default {
   components: {
-    Head,
-    OverTime
+    Head
   },
   data() {
     return {
@@ -87,16 +87,14 @@ export default {
       // 人脸识别定时器
       GetBase: "",
       // 当前签到人员
-      user: {
-        name: "",
-        img: "",
-        time: ""
-      },
+      userName: "",
       // 识别状态
       signSuccess: false,
+      lsb: false,
       // 签到或者签退
       signInState: this.$store.state.signInState,
-      img_base: require('../assets/img/数据加载失败.png')
+      img_base: globalConfig.img,
+      statue: false
     };
   },
   created() {
@@ -110,84 +108,12 @@ export default {
     // 开启摄像头
     // this.openNavgate();
     this.$nextTick(() => {
+      console.log(111);
       // this.openNavgate();
-      // this.initVideo();
       this.Upimg();
     });
-
-    if (this.signInState === 0) {
-      // this.roomSignIn();
-      // this.signSuccess = true;
-    } else {
-      // this.roomSignOut();
-      // this.signSuccess = true;
-    }
   },
   methods: {
-    initVideo() {
-      let that = this;
-      this.video = document.getElementById("video");
-      setTimeout(() => {
-        if (
-          navigator.mediaDevices.getUserMedia ||
-          navigator.getUserMedia ||
-          navigator.webkitGetUserMedia ||
-          navigator.mozGetUserMedia
-        ) {
-          // 调用用户媒体设备, 访问摄像头
-          that.getUserMedia(
-            {
-              video: {
-                width: {
-                  ideal: 720,
-                  max: 720
-                },
-                height: {
-                  ideal: 720,
-                  max: 720
-                },
-                facingMode: "user", // 前置摄像头
-                frameRate: {
-                  ideal: 30,
-                  min: 10
-                }
-              }
-            },
-            this.videoSuccess,
-            this.videoError
-          );
-        } else {
-          this.$toast.center("摄像头打开失败,请检查权限设置!");
-        }
-      }, 300);
-    },
-    getUserMedia(constraints, success, error) {
-      if (navigator.mediaDevices.getUserMedia) {
-        // 最新的标准API
-        navigator.mediaDevices
-          .getUserMedia(constraints)
-          .then(success)
-          .catch(error);
-      } else if (navigator.webkitGetUserMedia) {
-        // webkit核心浏览器
-        navigator.webkitGetUserMedia(constraints, success, error);
-      } else if (navigator.mozGetUserMedia) {
-        // firfox浏览器
-        navigator.mozGetUserMedia(constraints, success, error);
-      } else if (navigator.getUserMedia) {
-        // 旧版API
-        navigator.getUserMedia(constraints, success, error);
-      }
-    },
-    videoSuccess(stream) {
-      this.mediaStreamTrack = stream;
-      this.video.srcObject = stream;
-      this.video.play();
-    },
-    videoError(error) {
-      console.error(error);
-      // this.$toast.center("摄像头打开失败,请检查权限设置!");
-    },
     // 开启PC端摄像头
     openNavgate() {
       var getUserMedia =
@@ -217,97 +143,78 @@ export default {
           console.log("Reeeejected!", e);
         }
       );
-    },
-    // 人脸识别并上传Base64
+    }, // 人脸识别并上传Base64
     Upimg() {
-      const ip = "29500x27y9.picp.vip";
-      // 请求人脸接口
-      this.GetBase = setInterval(GetBase64, 3000); // 每3s请求一次
-      var statue = false;
       let _this = this;
-      var ArrayBase64 = []; // 人脸获取集合
-      async function GetBase64() {
-        var canvas = document.createElement("canvas"); // 创建canvas元素
-        var video = document.getElementById("video"); // 获取video元素
-        var width = video.videoWidth; // 确保canvas的尺寸与图片一样
-        var height = video.videoHeight;
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(video, 0, 0, width, height); // 将图片绘制到canvas中
-        var base64 = await canvas.toDataURL("image/jpeg");
-        var param = base64.split(",")[1];
-        // console.log(param);
-        var newBase64 = "data:image/png;base64," + param;
-        // console.log(newBase64, 'newBase64');
+      // const ip = "192.168.0.120";
+      // 请求人脸接口 每3s请求一次
+      _this.GetBase = setInterval(() => {
+        GetBase64();
+      }, 3000);
+      // var ArrayBase64 = []; // 人脸获取集合
+      function GetBase64() {
+        // var canvas = document.createElement("canvas"); // 创建canvas元素
+        // var video = document.getElementById("video"); // 获取video元素
+        // var width = video.videoWidth; // 确保canvas的尺寸与图片一样
+        // var height = video.videoHeight;
+        // canvas.width = width;
+        // canvas.height = height;
+        // canvas.getContext("2d").drawImage(video, 0, 0, width, height); // 将图片绘制到canvas中
+        // var base64 = await canvas.toDataURL("image/jpeg");
+        // var param = base64.split(",")[1];
+        // var newBase64 = "data:image/png;base64," + param;
+        // var newBase64 = param;
+        // ArrayBase64.push(newBase64);
+        // var imgBase64 = ArrayBase64.pop();
+        // console.log("imgBase64");
 
-        ArrayBase64.push(newBase64);
-        // console.log(ArrayBase64,'ArrayBase64')
-        // let imgBase64 = ArrayBase64.pop();
-
-        // 获取到安卓传过来的base64图片
-        let imgBase64 = this.img_base;
-
-        // console.log(imgBase64, "imgBase64");
-        if (!statue) {
-          statue = true;
-          await _this.$axios
-            .post("http://" + ip + "/api/Face/Testing/Base64", {
-              Base64: imgBase64
-            })
+        // 调用安卓方法
+        _this.img_base = getAndroidImg();
+        console.log(_this.img_base);
+        if (!_this.statue) {
+          // let data = { pageNo: "1", pageSize: "20", base64: imgBase64 };
+          let data = { pageNo: "1", pageSize: "20", base64: globalConfig.img };
+          _this.$axios
+            .post(`/interface/rlsb`, data)
             .then(res => {
-              if (res.data.status === true) {
-                console.log(res.data.msg);
-                _this.$axios
-                  .post("http://" + ip + "/api/Face/Comparison/Base64", {
-                    Base64: imgBase64
-                  })
-                  .then(res => {
-                    if (res.data.status === true) {
-                      console.log("登录成功!");
-                      // console.log(res.data);
-                      // 停止人脸识别
-                      clearInterval(_this.GetBase);
-
-                      // 判断是签到 还是 签退
-                      if (_this.signInState === 0) {
-                        // 签到
-                        _this.roomSignIn();
-                      } else {
-                        // 签退
-                        _this.roomSignOut();
-                      }
-                    } else {
-                      console.log(res.data.msg);
-                    }
-                  })
-                  .catch(error => {
-                    console.log("匹配请求失败", error);
-                    return false;
-                  });
+              if (res.data.code === 200) {
+                if (_this.$router.currentRoute.path === "/register") {
+                  console.log("识别成功!");
+                  _this.userName = res.data.data.list[0].faceInfo.name;
+                  // 判断是签到 还是 签退
+                  // if (_this.signInState === 0) {
+                  //   // 签到
+                  //   _this.roomSignIn(_this.userName);
+                  // } else {
+                  //   // 签退
+                  //   _this.roomSignOut(_this.userName);
+                  // }
+                }
               } else {
                 console.log(res.data.msg);
+                _this.lsb = true;
               }
             })
             .catch(error => {
-              console.log("识别请求失败", error);
-              return false;
+              _this.lsb = true;
+              console.log("匹配请求失败", error);
             });
-          statue = false;
         }
       }
     },
     // 签到
-    roomSignIn() {
+    roomSignIn(userName) {
       console.log("签到");
       let _this = this;
       _this.$axios
         .post("/client/mediation/signIn", {
           mediationId: this.$store.state.mediationRoomInfo
             .recentMediationList[0].id,
-          signInName: "123"
+          signInName: userName
         })
         .then(res => {
-          if (res.status === 200) {
+          if (res.data.code === 200) {
+            _this.statue = true;
             // 识别成功显示成功标识
             _this.signSuccess = true;
             setTimeout(() => {
@@ -315,20 +222,21 @@ export default {
               _this.$router.push("/loading");
             }, 3000);
           } else {
-            console.log("请求状态失败");
-            _this.$message.error(res.data.msg);
+            console.log(res.data.msg);
+            _this.lsb = true;
           }
         })
         .catch(err => {
           // 请求不成功则进入catch
           console.log(err);
-          return false;
+          _this.lsb = true;
         });
     },
     // 签退
-    roomSignOut() {
+    roomSignOut(userName) {
       console.log("签退");
       let _this = this;
+      // 获取当前场与下一场会议的ID
       let recentMediationList = [];
       _this.$store.state.mediationRoomInfo.recentMediationList.forEach(item => {
         recentMediationList.push(item.id);
@@ -336,35 +244,39 @@ export default {
       _this.$axios
         .post("/client/mediation/signOut", {
           mediationIds: recentMediationList,
-          signOutName: "123"
+          signOutName: userName
         })
         .then(res => {
-          if (res.status === 200) {
+          if (res.data.code === 200) {
+            _this.statue = true;
             _this.signSuccess = true;
             setTimeout(() => {
               // 跳转主页
               _this.$router.push("/loading");
             }, 3000);
           } else {
-            console.log("请求状态失败");
-            _this.$message.error(res.data.msg);
+            console.log(res.data.msg);
+            _this.lsb = true;
           }
         })
         .catch(err => {
           // 请求不成功则进入catch
           console.log(err);
-          return false;
+          _this.lsb = true;
         });
-    },
-    getImg(img) {
-      this.img_base = img;
-      return "success";
+    }
+  },
+  watch: {
+    img_base: function(newValue, oldValue) {
+      console.log(newValue);
+      this.img_base = newValue;
     }
   },
   destroyed() {
     clearInterval(this.GetBase);
     // clearInterval(this.$store.state.routerInterval);
     // console.log("destroyed", this.GetBase);
+    GBSXT();
   }
 };
 </script>
@@ -382,7 +294,7 @@ export default {
     height: 82vh;
     padding: 0 5vw;
     section {
-      height: 131vw;
+      height: 135vw;
       padding: 1vw;
       background: url("../assets/img/01框.png");
       background-size: 100% 100%;
@@ -449,6 +361,16 @@ export default {
           margin-top: 10vw;
         }
       }
+      .backWarp {
+        .reBackIndex {
+          margin: 3vw auto 0;
+          width: 20vw;
+          height: 6vw;
+          background: url("../assets/img/返回按钮.png") no-repeat;
+          background-size: 20vw 6vw;
+          cursor: pointer;
+        }
+      }
     }
   }
 
@@ -458,6 +380,13 @@ export default {
     line-height: 3vh;
     text-align: center;
     color: white;
+  }
+  #showImg {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    width: 10vh;
+    height: 10vh;
   }
 }
 </style>

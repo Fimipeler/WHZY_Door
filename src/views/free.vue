@@ -116,6 +116,7 @@ export default {
     //   }, 5000);
     // },
     // 获取当前时间
+
     getNowTime() {
       let vm = this;
       var nowLocalTime = Date.parse(new Date());
@@ -179,7 +180,7 @@ export default {
   },
   destroyed() {
     clearInterval(this.timeInterval);
-    console.log()
+    console.log();
     clearInterval(this.$store.state.routerInterval);
   }
 };
@@ -200,7 +201,6 @@ export default {
       text-align: center;
       img {
         width: 53vw;
-        height: 27vw;
       }
     }
     .date-right {
