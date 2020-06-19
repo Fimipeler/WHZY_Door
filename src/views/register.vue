@@ -30,8 +30,7 @@
           <canvas id="canv" style="position: absolute; z-index: -1;"></canvas>
           <div class="baseBox">
             <div class="video-box">
-              <!-- <img :src="img_base" alt="" /> -->
-              <video id="video" autoplay loop preload></video>
+              <!-- <video id="video" autoplay loop preload></video> -->
             </div>
           </div>
         </div>
@@ -44,23 +43,30 @@
             v-show="signSuccess"
           /> -->
           <!-- 身份识别中 -->
-          <img
+          <p v-show="message === 1">身份识别中。。。</p>
+          <p v-show="message === 2">人脸识别成功！</p>
+          <p v-show="message === 3">人脸识别失败！</p>
+          <p v-show="message === 4">签到成功！</p>
+          <p v-show="message === 5">签到失败！</p>
+          <p v-show="message === 6">签退成功！</p>
+          <p v-show="message === 7">签退失败！</p>
+          <!-- <img
             src="../assets/img/身份识别中.png"
             alt=""
             v-show="!signSuccess && !lsb"
-          />
+          /> -->
           <!-- 签到识别成功 -->
-          <img
+          <!-- <img
             src="../assets/img/身份识别成功.png"
             alt=""
             v-show="signInState === 0 && signSuccess"
-          />
-          <img
+          /> -->
+          <!-- <img
             src="../assets/img/会议结束.png"
             alt=""
             v-show="signInState === 1 && signSuccess"
-          />
-          <img src="../assets/img/身份识别失败.png" alt="" v-show="lsb" />
+          /> -->
+          <!-- <img src="../assets/img/身份识别失败.png" alt="" v-show="lsb" /> -->
         </div>
         <div class="backWarp">
           <div class="reBackIndex" @click="$router.push('/loading')"></div>
@@ -69,7 +75,7 @@
     </main>
     <footer class="footer">©&nbsp;百智诚远</footer>
     <!-- <OverTime></OverTime> -->
-    <img id="showImg" :src="img_base" alt="" />
+    <!-- <img id="showImg" :src="img_base" alt="" /> -->
   </div>
 </template>
 <script>
@@ -94,7 +100,8 @@ export default {
       // 签到或者签退
       signInState: this.$store.state.signInState,
       img_base: globalConfig.img,
-      statue: false
+      statue: false,
+      message: 1
     };
   },
   created() {
@@ -152,7 +159,7 @@ export default {
         GetBase64();
       }, 3000);
       // var ArrayBase64 = []; // 人脸获取集合
-      function GetBase64() {
+      async function GetBase64() {
         // var canvas = document.createElement("canvas"); // 创建canvas元素
         // var video = document.getElementById("video"); // 获取video元素
         // var width = video.videoWidth; // 确保canvas的尺寸与图片一样
@@ -173,40 +180,41 @@ export default {
         console.log(_this.img_base);
         if (!_this.statue) {
           // let data = { pageNo: "1", pageSize: "20", base64: imgBase64 };
-          let data = { pageNo: "1", pageSize: "20", base64: globalConfig.img };
-          _this.$axios
+          let data = { pageNo: "1", pageSize: "20", base64: _this.img_base };
+          await _this.$axios
             .post(`/interface/rlsb`, data)
             .then(res => {
               if (res.data.code === 200) {
                 if (_this.$router.currentRoute.path === "/register") {
                   console.log("识别成功!");
+                  _this.message = 2;
                   _this.userName = res.data.data.list[0].faceInfo.name;
                   // 判断是签到 还是 签退
-                  // if (_this.signInState === 0) {
-                  //   // 签到
-                  //   _this.roomSignIn(_this.userName);
-                  // } else {
-                  //   // 签退
-                  //   _this.roomSignOut(_this.userName);
-                  // }
+                  if (_this.signInState === 0) {
+                    // 签到
+                    _this.roomSignIn(_this.userName);
+                  } else {
+                    // 签退
+                    _this.roomSignOut(_this.userName);
+                  }
                 }
               } else {
                 console.log(res.data.msg);
-                _this.lsb = true;
+                _this.message = 3;
               }
             })
             .catch(error => {
-              _this.lsb = true;
+              _this.message = 3;
               console.log("匹配请求失败", error);
             });
         }
       }
     },
     // 签到
-    roomSignIn(userName) {
+    async roomSignIn(userName) {
       console.log("签到");
       let _this = this;
-      _this.$axios
+      await _this.$axios
         .post("/client/mediation/signIn", {
           mediationId: this.$store.state.mediationRoomInfo
             .recentMediationList[0].id,
@@ -214,26 +222,26 @@ export default {
         })
         .then(res => {
           if (res.data.code === 200) {
+            _this.message = 6;
             _this.statue = true;
             // 识别成功显示成功标识
-            _this.signSuccess = true;
             setTimeout(() => {
               // 跳转主页
               _this.$router.push("/loading");
             }, 3000);
           } else {
             console.log(res.data.msg);
-            _this.lsb = true;
+            _this.message = 7;
           }
         })
         .catch(err => {
           // 请求不成功则进入catch
           console.log(err);
-          _this.lsb = true;
+          _this.message = 7;
         });
     },
     // 签退
-    roomSignOut(userName) {
+    async roomSignOut(userName) {
       console.log("签退");
       let _this = this;
       // 获取当前场与下一场会议的ID
@@ -241,28 +249,28 @@ export default {
       _this.$store.state.mediationRoomInfo.recentMediationList.forEach(item => {
         recentMediationList.push(item.id);
       });
-      _this.$axios
+      await _this.$axios
         .post("/client/mediation/signOut", {
           mediationIds: recentMediationList,
           signOutName: userName
         })
         .then(res => {
           if (res.data.code === 200) {
+            _this.message = "签到成功";
             _this.statue = true;
-            _this.signSuccess = true;
             setTimeout(() => {
               // 跳转主页
               _this.$router.push("/loading");
             }, 3000);
           } else {
             console.log(res.data.msg);
-            _this.lsb = true;
+            _this.message = res.data.msg;
           }
         })
         .catch(err => {
           // 请求不成功则进入catch
           console.log(err);
-          _this.lsb = true;
+          _this.message = "签退失败";
         });
     }
   },
@@ -329,7 +337,7 @@ export default {
         overflow: hidden;
         margin: 0 auto;
         border-radius: 1.5vw;
-        background-color: rgba(104, 160, 242, 0.2);
+        // background-color: rgba(104, 160, 242, 0.2);
         #video {
           width: 84vw;
           height: 84vw;
@@ -356,9 +364,16 @@ export default {
           -webkit-transform: translate(-50%, 0);
           transform: translate(-50%, -50%);
         }
-        img {
-          height: 4vw;
+        p {
+          font-size: 4vw;
           margin-top: 10vw;
+          background: linear-gradient(
+            to bottom,
+            rgb(169, 253, 233),
+            rgb(2, 193, 254)
+          );
+          background-clip: text;
+          color: transparent;
         }
       }
       .backWarp {

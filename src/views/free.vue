@@ -181,7 +181,7 @@ export default {
   destroyed() {
     clearInterval(this.timeInterval);
     console.log();
-    clearInterval(this.$store.state.routerInterval);
+    // clearInterval(this.$store.state.routerInterval);
   }
 };
 </script>
